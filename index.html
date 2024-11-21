@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz e Flashcards Avanzati</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    #quizContainer, #flashcardContainer {
+      display: none;
+      margin-top: 20px;
+    }
+    .btn {
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+    .btn.success { background-color: #4caf50; color: white; }
+    .btn.danger { background-color: #f44336; color: white; }
+    .btn.info { background-color: #2196f3; color: white; }
+    .response-feedback {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .response-feedback.correct { color: #4caf50; }
+    .response-feedback.incorrect { color: #f44336; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Quiz e Flashcards Avanzati</h1>
+    <textarea id="textInput" rows="5" placeholder="Inserisci del testo qui..."></textarea>
+    <br>
+    <button id="generateQuiz" class="btn info">Genera Quiz</button>
+    <button id="generateFlashcards" class="btn info">Genera Flashcards</button>
+
+    <!-- Contenitore Quiz -->
+    <div id="quizContainer">
+      <h2>Quiz</h2>
+      <p id="question"></p>
+      <div id="options"></div>
+      <p id="explanation" class="response-feedback"></p>
+    </div>
+
+    <!-- Contenitore Flashcards -->
+    <div id="flashcardContainer">
+      <h2>Flashcard</h2>
+      <p id="flashcard"></p>
+      <button id="remembered" class="btn success">Ricordata</button>
+      <button id="notRemembered" class="btn danger">Non Ricordata</button>
+    </div>
+  </div>
+
+  <script>
+    let currentFlashcardIndex = 0;
+    let flashcards = [];
+    let questions = [];
+
+    // Estrae domande e risposte casuali dal testo
+    function generateQuestionsAndAnswers(text) {
+      const sentences = text.split('.').filter(s => s.trim() !== '');
+      return sentences.map((sentence, index) => {
+        const options = [...sentences]; // Usa tutte le frasi come opzioni
+        const correctAnswer = sentence.trim();
+        options.splice(index, 1); // Rimuovi la risposta corretta
+        const shuffledOptions = [correctAnswer, ...options.slice(0, 3)].sort(() => Math.random() - 0.5);
+        return {
+          question: `Cosa significa: "${sentence.trim()}"?`,
+          correctAnswer,
+          options: shuffledOptions,
+          explanation: `La risposta corretta era: "${correctAnswer}"`,
+        };
+      });
+    }
+
+    // Genera quiz
+    document.getElementById('generateQuiz').addEventListener('click', () => {
+      const textInput = document.getElementById('textInput').value.trim();
+      if (!textInput) {
+        alert("Inserisci del testo!");
+        return;
+      }
+
+      questions = generateQuestionsAndAnswers(textInput);
+      const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+      showQuestion(randomQuestion);
+    });
+
+    // Mostra domanda
+    function showQuestion(question) {
+      document.getElementById('question').textContent = question.question;
+      const optionsContainer = document.getElementById('options');
+      optionsContainer.innerHTML = '';
+      document.getElementById('explanation').textContent = '';
+
+      question.options.forEach(option => {
+        const button = document.createElement('button');
+        button.textContent = option;
+        button.classList.add('btn', 'info');
+        button.addEventListener('click', () => {
+          if (option === question.correctAnswer) {
+            button.classList.add('success');
+            document.getElementById('explanation').textContent = question.explanation;
+            document.getElementById('explanation').classList.add('correct');
+          } else {
+            button.classList.add('danger');
+            document.getElementById('explanation').textContent = question.explanation;
+            document.getElementById('explanation').classList.add('incorrect');
+          }
+        });
+        optionsContainer.appendChild(button);
+      });
+
+      document.getElementById('quizContainer').style.display = 'block';
+      document.getElementById('flashcardContainer').style.display = 'none';
+    }
+
+    // Genera flashcards
+    document.getElementById('generateFlashcards').addEventListener('click', () => {
+      const textInput = document.getElementById('textInput').value.trim();
+      if (!textInput) {
+        alert("Inserisci del testo!");
+        return;
+      }
+
+      flashcards = textInput.split('.').filter(s => s.trim() !== '');
+      if (flashcards.length === 0) {
+        alert("Nessuna frase trovata per le flashcards!");
+        return;
+      }
+
+      currentFlashcardIndex = 0;
+      updateFlashcard();
+      document.getElementById('flashcardContainer').style.display = 'block';
+      document.getElementById('quizContainer').style.display = 'none';
+    });
+
+    // Mostra flashcard corrente
+    function updateFlashcard() {
+      if (currentFlashcardIndex >= flashcards.length) {
+        alert("Hai completato tutte le flashcards!");
+        return;
+      }
+      document.getElementById('flashcard').textContent = flashcards[currentFlashcardIndex];
+    }
+
+    // Gestione flashcards
+    document.getElementById('remembered').addEventListener('click', () => {
+      currentFlashcardIndex++;
+      updateFlashcard();
+    });
+    document.getElementById('notRemembered').addEventListener('click', () => {
+      currentFlashcardIndex++;
+      updateFlashcard();
+    });
+  </script>
+</body>
+</html>
